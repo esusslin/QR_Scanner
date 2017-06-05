@@ -104,6 +104,8 @@ class QRScannerController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
         // Get the metadata object.
         let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         
+        print(metadataObj)
+        
         if metadataObj.type == AVMetadataObjectTypeQRCode {
             // If the found metadata is equal to the QR code metadata then update the status label's text and set the bounds
             let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
@@ -115,4 +117,79 @@ class QRScannerController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
                 messageLabel.text = metadataObj.stringValue
             }
         }
-    }}
+        
+        if metadataObj.type == AVMetadataObjectTypeEAN13Code {
+            // If the found metadata is equal to the QR code metadata then update the status label's text and set the bounds
+            let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
+            qrCodeFrameView?.frame = barCodeObject!.bounds
+            
+            print("This is a EAN-13 code " + "\(metadataObj.stringValue)")
+            barcodeDetected(code: metadataObj.stringValue)
+            
+            if metadataObj.stringValue != nil {
+                messageLabel.text = metadataObj.stringValue
+            }
+        }
+        
+        if metadataObj.type == AVMetadataObjectTypeUPCECode {
+            // If the found metadata is equal to the QR code metadata then update the status label's text and set the bounds
+            let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
+            qrCodeFrameView?.frame = barCodeObject!.bounds
+            
+            print("This is UPC-E code " + "\(metadataObj.stringValue)")
+            barcodeDetected(code: metadataObj.stringValue)
+            
+            if metadataObj.stringValue != nil {
+                messageLabel.text = metadataObj.stringValue
+            }
+        }
+
+    }
+    
+    
+    
+    
+    
+    func barcodeDetected(code: String) {
+        
+        print("BARCODE!")
+        
+        // Let the user know we've found something.
+        let alert = UIAlertController(title: "Found a Barcode!", message: code, preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Bucket This", style: UIAlertActionStyle.destructive, handler: { action in
+            
+            // Remove the spaces.
+            //            let trimmedCode = code.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+            
+            let trimmedCode = code.trimmingCharacters(in: NSCharacterSet.whitespaces)
+            
+            DataService.searchAPI(codeNumber: trimmedCode)
+            
+            // EAN or UPC?
+            // Check for added "0" at beginning of code.
+            
+//            let trimmedCodeString = "\(trimmedCode)"
+//            var trimmedCodeNoZero: String
+//            
+//            if trimmedCodeString.hasPrefix("0") && trimmedCodeString.characters.count > 1 {
+//                trimmedCodeNoZero = String(trimmedCodeString.characters.dropFirst())
+//                
+//                // Send the doctored UPC to DataService.searchAPI()
+//                DataService.searchAPI(codeNumber: trimmedCodeNoZero)
+//            } else {
+//                
+//                // Send the doctored EAN to DataService.searchAPI()
+//                DataService.searchAPI(codeNumber: trimmedCodeString)
+//            }
+            
+            self.navigationController?.popViewController(animated: true)
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+    }
+
+    
+    
+
+}
+
